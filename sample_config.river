@@ -1,0 +1,32 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
+
+// Discover where to collect dashboards from.
+discovery.file "dashboards_from_file" {
+  files = ["/home/kevin/sandbox/work/agent/discovery_targets.json"]
+}
+
+// Collect dashboards.
+grafana.dashboard.scrape "dashboard_scrape" {
+  targets    = discovery.file.dashboards_from_file.targets
+  forward_to = [
+    grafana.echo.dashboard_stdout.receiver,
+    grafana.write.dashboard_write.receiver,
+  ]
+
+  scrape_interval = "10s"
+  scrape_timeout  = "2s"
+  dashboards_path = "/dashboards.json"
+}
+
+grafana.echo "dashboard_stdout" {
+
+}
+
+
+grafana.write "dashboard_write" {
+  host  = "localhost:3000"
+  token = env("GRAFANA_SA_TOKEN")
+}
