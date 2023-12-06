@@ -32,8 +32,8 @@ import (
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
 	_ "github.com/grafana/agent/component/faro/receiver"                            // Import faro.receiver
 	_ "github.com/grafana/agent/component/grafana/echo"                             // Import grafana.echo
-	_ "github.com/grafana/agent/component/grafana/scrape"                           // Import grafana.dashboard.scrape
-	_ "github.com/grafana/agent/component/grafana/write"                            // Import grafana.dashboard.write
+	_ "github.com/grafana/agent/component/grafana/scrape"                           // Import grafana.scrape
+	_ "github.com/grafana/agent/component/grafana/write"                            // Import grafana.write
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo

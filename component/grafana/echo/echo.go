@@ -42,7 +42,7 @@ var (
 	_ component.Component = (*Component)(nil)
 )
 
-// Component implements the loki.source.file component.
+// Component implements the grafana.echo component.
 type Component struct {
 	opts component.Options
 
@@ -51,12 +51,12 @@ type Component struct {
 	receiver grafana.AppendableFunc
 }
 
-// New creates a new loki.echo component.
+// New creates a new grafana.echo component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts: o,
-		receiver: func(ctx context.Context, raw grafana.RawDashboards) error {
-			level.Info(o.Logger).Log("msg", "grafana.echo", "dashboards", string(raw))
+		receiver: func(ctx context.Context, raw grafana.RawResources) error {
+			level.Info(o.Logger).Log("msg", "grafana.echo", "resources", string(raw))
 
 			return nil
 		},

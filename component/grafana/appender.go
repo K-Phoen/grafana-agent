@@ -9,18 +9,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const (
-	LabelNameDelta = "__delta__"
-)
-
-var NoopAppendable = AppendableFunc(func(_ context.Context, _ RawDashboards) error { return nil })
-
 type Appendable interface {
 	Appender() Appender
 }
 
 type Appender interface {
-	Append(ctx context.Context, raw RawDashboards) error
+	Append(ctx context.Context, raw RawResources) error
 }
 
 var _ Appendable = (*Fanout)(nil)
@@ -39,7 +33,7 @@ type Fanout struct {
 func NewFanout(children []Appendable, componentID string, register prometheus.Registerer) *Fanout {
 	wl := prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name: "grafana_fanout_latency",
-		Help: "Write latency for sending to grafana dashboards",
+		Help: "Write latency for sending to Grafana resources",
 	})
 	_ = register.Register(wl)
 	return &Fanout{
@@ -91,7 +85,7 @@ type appender struct {
 }
 
 // Append satisfies the Appender interface.
-func (a *appender) Append(ctx context.Context, raw RawDashboards) error {
+func (a *appender) Append(ctx context.Context, raw RawResources) error {
 	now := time.Now()
 	defer func() {
 		a.writeLatency.Observe(time.Since(now).Seconds())
@@ -106,9 +100,9 @@ func (a *appender) Append(ctx context.Context, raw RawDashboards) error {
 	return multiErr
 }
 
-type AppendableFunc func(ctx context.Context, raw RawDashboards) error
+type AppendableFunc func(ctx context.Context, raw RawResources) error
 
-func (f AppendableFunc) Append(ctx context.Context, raw RawDashboards) error {
+func (f AppendableFunc) Append(ctx context.Context, raw RawResources) error {
 	return f(ctx, raw)
 }
 

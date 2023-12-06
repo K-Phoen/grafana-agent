@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	DashboardsPath = "__dashboards_path__"
+	ResourcesPath = "__resources_path__"
 )
 
 // TargetHealth describes the health state of a target.
@@ -113,7 +113,7 @@ func urlFromTarget(lbls labels.Labels, params url.Values) string {
 	return (&url.URL{
 		Scheme:   lbls.Get(model.SchemeLabel),
 		Host:     lbls.Get(model.AddressLabel),
-		Path:     lbls.Get(DashboardsPath),
+		Path:     lbls.Get(ResourcesPath),
 		RawQuery: newParams.Encode(),
 	}).String()
 }
@@ -235,7 +235,7 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	scrapeLabels := []labels.Label{
 		{Name: model.JobLabel, Value: cfg.JobName},
 		{Name: model.SchemeLabel, Value: cfg.Scheme},
-		{Name: DashboardsPath, Value: cfg.DashbopardsPath},
+		{Name: ResourcesPath, Value: cfg.ResourcesPath},
 	}
 	lb := labels.NewBuilder(lset)
 
@@ -357,7 +357,7 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 				}
 				lbls = append(lbls, labels.Label{Name: model.AddressLabel, Value: lset.Get(model.AddressLabel)})
 				lbls = append(lbls, labels.Label{Name: model.SchemeLabel, Value: cfg.Scheme})
-				lbls = append(lbls, labels.Label{Name: DashboardsPath, Value: cfg.DashbopardsPath})
+				lbls = append(lbls, labels.Label{Name: ResourcesPath, Value: cfg.ResourcesPath})
 				// Encode scrape query parameters as labels.
 				for k, v := range cfg.Params {
 					if len(v) > 0 {

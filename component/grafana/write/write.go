@@ -114,33 +114,45 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func (c *Component) dashboardsReceiver(_ context.Context, raw grafana.RawDashboards) error {
-	rawDashboards := []grafana.Dashboard{}
-	if err := json.Unmarshal(raw, &rawDashboards); err != nil {
-		level.Error(c.opts.Logger).Log("msg", "could not unmarshal dashboards list", "err", err)
+func (c *Component) dashboardsReceiver(_ context.Context, raw grafana.RawResources) error {
+	resources := []grafana.Resource{}
+	if err := json.Unmarshal(raw, &resources); err != nil {
+		level.Error(c.opts.Logger).Log("msg", "could not unmarshal resources", "err", err)
 		return err
 	}
 
-	for _, dashboard := range rawDashboards {
-		if err := c.persistRawDashboard(dashboard); err != nil {
-			level.Error(c.opts.Logger).Log("msg", "could not persist dashboard", "err", err)
+	for _, dashboard := range resources {
+		if err := c.persistResource(dashboard); err != nil {
+			level.Error(c.opts.Logger).Log("msg", "could not persist resource", "err", err)
 		}
 	}
 
 	return nil
 }
 
-func (c *Component) persistRawDashboard(dashboard grafana.Dashboard) error {
-	// the API will return an error if an ID is present in the JSON but doesn't exist in Grafana
-	delete(dashboard, "id")
+func (c *Component) persistResource(resource grafana.Resource) error {
+	switch resource.Kind {
+	case grafana.KindDashboard:
+		return c.persistDashboardResource(resource)
+	default:
+		return fmt.Errorf("resource with kind '%s' has no persistence handler", resource.Kind)
+	}
+}
+
+func (c *Component) persistDashboardResource(resource grafana.Resource) error {
+	// TODO: support folder by ID or by name too
+	folderUID := resource.GetAnnotation(grafana.FolderUIDAnnotation)
+	if folderUID == "" {
+		return fmt.Errorf("the '%s' annotation is mandatory for dashboard resources", grafana.FolderUIDAnnotation)
+	}
 
 	dashboardJSON, err := json.Marshal(struct {
-		Dashboard *grafana.Dashboard `json:"dashboard"`
-		FolderID  uint               `json:"folderId"`
-		Overwrite bool               `json:"overwrite"`
+		Dashboard any    `json:"dashboard"`
+		FolderUID string `json:"folderUid"`
+		Overwrite bool   `json:"overwrite"`
 	}{
-		Dashboard: &dashboard,
-		FolderID:  1, // TODO
+		Dashboard: resource.Spec,
+		FolderUID: folderUID,
 		Overwrite: true,
 	})
 	if err != nil {

@@ -20,7 +20,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "grafana.dashboard.scrape",
+		Name: "grafana.scrape",
 		Args: Arguments{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -28,7 +28,7 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the prometheus.scrape
+// Arguments holds values which are used to configure the grafana.scrape
 // component.
 type Arguments struct {
 	Targets   []discovery.Target   `river:"targets,attr"`
@@ -40,8 +40,8 @@ type Arguments struct {
 	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
 	ScrapeTimeout time.Duration `river:"scrape_timeout,attr,optional"`
-	// The HTTP resource path on which to fetch metrics from targets.
-	DashbopardsPath string `river:"dashboards_path,attr,optional"`
+	// The HTTP resource path on which to fetch Grafana resources from targets.
+	ResourcesPath string `river:"resources_path,attr,optional"`
 	// The URL scheme with which to fetch metrics from targets.
 	Scheme string `river:"scheme,attr,optional"`
 	// A set of query parameters with which the target is scraped.
@@ -55,8 +55,8 @@ type Arguments struct {
 // SetToDefault implements river.Defaulter.
 func (arg *Arguments) SetToDefault() {
 	*arg = Arguments{
-		DashbopardsPath: "/dashboards",
-		Scheme:          "http",
+		ResourcesPath: "/grafana",
+		Scheme:        "http",
 
 		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
 		ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
@@ -70,11 +70,11 @@ func (arg *Arguments) Validate() error {
 		return fmt.Errorf("scrape_timeout (%s) greater than scrape_interval (%s) for scrape config", arg.ScrapeTimeout, arg.ScrapeInterval)
 	}
 
-	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	// We must explicitly Validate because HTTPClientConfig is squashed, and it won't run otherwise.
 	return arg.HTTPClientConfig.Validate()
 }
 
-// Component implements the prometheus.scrape component.
+// Component implements the grafana.scrape component.
 type Component struct {
 	opts    component.Options
 	cluster cluster.Cluster
@@ -91,7 +91,7 @@ var (
 	_ component.Component = (*Component)(nil)
 )
 
-// New creates a new prometheus.scrape component.
+// New creates a new grafana.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	data, err := o.GetServiceData(cluster.ServiceName)
 	if err != nil {
